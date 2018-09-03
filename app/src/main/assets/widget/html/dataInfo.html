@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>数据分析</title>
+    <script src="../script/jquery.js"></script>
+    <script src="../script/time.js"></script>
+    <script src="../script/aui-toast.js"></script>
+    <link rel="stylesheet" href="../css/api.css">
+    <link rel="stylesheet" href="../css/aui.css">
+    <style type="text/css">
+        html {
+            height: 1000px;
+            background-color: #F5F5F5;
+        }
+
+        td {
+            text-align: center;
+            border: solid 1px #7b7b7b;
+            min-width: 80px;
+        }
+
+        tr {
+            margin-right: 10%;
+        }
+
+        #count-table {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="aui-card-list-header">
+    <div style="width: 100%;float: left;">
+             <span>
+            选择时间 &nbsp;&nbsp;日期:
+        </span>
+        <input type="text" id="date"
+               style="display: unset;height: 2.3em;width: 120px;margin-top: 4px;text-align: center;border: solid 1px rgba(8, 148, 236, 0.39);border-radius: 10px;">
+        <span>开始: </span>
+        <input type="text" id="sj" onclick="szShow(document.body,szsj)"
+               style="    display: unset;height: 2.3em;width: 120px;margin-top: 4px;text-align: center;border: solid 1px rgba(8, 148, 236, 0.39);border-radius: 10px;"
+               readonly/>
+        <span> 结束: </span>
+        <input type="text" id="sj2" onclick="szShow(document.body,szsj2)"
+               style="    display: unset;height: 2.3em;width: 120px;margin-top: 4px;text-align: center;border: solid 1px rgba(8, 148, 236, 0.39);border-radius: 10px;"
+               readonly/>
+        <span class="aui-btn" onclick="searchData()">搜索</span>
+        <span class="aui-btn" onclick="init()">抓取</span>
+        <span class="aui-btn" onclick="zdzq()">自动抓取</span>
+    </div>
+</div>
+<table class="aui-card-header">
+    <thead>
+    <tr>
+        <td style="min-width: 0px;width: 50px;"></td>
+        <td style="width: 100px">期数</td>
+        <td style="width: 100px">时间</td>
+        <td colspan="10">
+            <table style="    width: 100%;">
+                <tr>
+                    <td colspan="10">
+                        <span id="ermsga" style="font-size: 12px; color: red; margin-right: 20px;">数据加载完成</span>统计
+                        <span id="ermsg" style="font-size: 12px; color: red; margin-left: 20px;">数据加载完成</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height: 10px;font-size: 10px;">1</td>
+                    <td style="height: 10px;font-size: 10px;">2</td>
+                    <td style="height: 10px;font-size: 10px;">3</td>
+                    <td style="height: 10px;font-size: 10px;">4</td>
+                    <td style="height: 10px;font-size: 10px;">5</td>
+                    <td style="height: 10px;font-size: 10px;">6</td>
+                    <td style="height: 10px;font-size: 10px;">7</td>
+                    <td style="height: 10px;font-size: 10px;">8</td>
+                    <td style="height: 10px;font-size: 10px;">9</td>
+                    <td style="height: 10px;font-size: 10px;">10</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    </thead>
+    <tbody id="datas">
+    </tbody>
+</table>
+
+<div class="aui-mask aui-mask-in" style="z-index: 999999;display: none;" id="counttc" onclick="$('#counttc,#count-tc').hide();$('#count-table').html('')"></div>
+<div class="aui-dialog aui-dialog-in" style="margin-top: -93px;z-index: 999999;width: 45%;margin-left: -25%;display: none;" id="count-tc">
+    <div class="aui-dialog-body aui-tab aui-margin-l-5">
+        <span style="font-size: 30px" id="tx">请稍等</span>
+        <table id="count-table">
+        </table>
+    </div>
+    <div class="aui-dialog-footer">
+        <div class="aui-dialog-btn" tapmode="" button-index="1" onclick="">确定</div>
+    </div>
+</div>
+
+</body>
+<script type="text/javascript">
+    var date = new Date();
+    $('#sj2').val(date.Format('HH:mm'));
+    $('#sj').val(((date.getHours() - 1) < 10 ? "0" + (date.getHours() - 1) : (date.getHours() - 1)) + ':00');
+    $('#date').val(new Date().Format("YYYY-MM-dd"));
+
+    function szsj(s, f) {
+        $('#sj').val(s + ':' + f);
+    }
+
+    function szsj2(s, f) {
+        $('#sj2').val(s + ':' + f);
+    }
+
+    apiready = function () {
+        init();
+    }
+    var co = 0;
+    var dd = 1;
+    var lo = false;
+
+    var zdzq_date = new Date().Format('YYYY-MM-dd');
+
+    function zdzq() {
+        if (!lo) {
+            zdzq_date = prompt('请输入抓取的年月：', zdzq_date);
+            lo = true;
+        }
+        console.log(zdzq_date);
+        if (dd < 32) {
+            var d = dd;
+            if (d < 10) {
+                d = '0' + d;
+            }
+            var r = parseInt(zdzq_date.split('-')[1]);
+            if (r < 10) {
+                r = '0' + r;
+            }
+            $('#date').val(zdzq_date.split('-')[0] + '-' + r + '-' + d);
+            dd++;
+            init(zdzq);
+        } else {
+            lo = false;
+            dd = 1;
+        }
+    }
+
+    function init(cbk) {
+
+        var date = $('#date').val();
+        if (date.indexOf('-') < 0) {
+            date = date.substring(0, 4) + '-' + date.substring(4, 6) + '-' + date.substring(6, 8);
+        }
+        $('#ermsga').text('数据' + date + '抓取中');
+
+        var dataInfo = api.require("dataInfo");
+        console.log("日期：" + new Date().Format("YYYY-MM-dd"));
+        dataInfo.byDate(function (e) {
+            var url = "https://kfc2000.com/web/rest/member/resulthistory?lottery=BJPK10&date=" + date + '&token=' + e.cookie.substring(e.cookie.indexOf('token=') + 6);
+            console.log("URL：" + url);
+            $('#ermsg').text('等待返回...');
+            console.log("cccc-----------：" + e.cookie.substring(e.cookie.indexOf('token=')));
+            $.ajax({
+                type: "GET",
+                url: url,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('content-type', 'application/json;charset=UTF-8');
+                    xhr.setRequestHeader('token', e.cookie.substring(e.cookie.indexOf('token=') + 6));
+                    xhr.setRequestHeader('accept', 'application/json, text/plain, */*');
+                },
+                success: function (data, success, response) {
+                    if (data.statusCode == 0) {
+                        var result = data.result;
+                        console.log("数据长度：" + result.length);
+                        $('#ermsg').text('保存数据中...');
+                        var list = [];
+                        for (var i = 0; i < result.length; i++) {
+                            var info = result[i];
+                            if (info.result) {
+                                var column = info.result.split(',');
+                                var d = {
+                                    time: new Date(info.drawTime).Format("YYYYMMddHHmmss"),
+                                    num: info.drawNumber,
+                                    column: column
+                                };
+                                list.push(d);
+                            }
+                        }
+                        dataInfo.save({data: list}, function (e) {
+                            console.log(JSON.stringify(e));
+                            $('#ermsg').text('加载完成');
+                            setTimeout(function () {
+                                $('#ermsg').text('');
+                                $('#ermsga').text('');
+                                if (cbk) {
+                                    cbk();
+                                }
+                            }, 500);
+                            co = 0;
+                        });
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log(JSON.stringify(XMLHttpRequest));
+                    console.log(errorThrown);
+                    $('#ermsg').text('【' + JSON.parse(XMLHttpRequest.responseText).message + '】,您可以搜索之前的数据查看,持续加载中......' + (co++) + '次');
+                    setTimeout(function () {
+                        init();
+                    }, 2000)
+
+                }
+            });
+        });
+    }
+
+    function queryData(d1, d2) {
+        var dataInfo = api.require("dataInfo");
+        if (!d1 || !d2) {
+            alert("请选择时间");
+        } else {
+            dataInfo.query({
+                d1: d1.replace(':', ''),
+                d2: d2.replace(':', '')
+            }, function (e) {
+                var datas = JSON.parse(e.data);
+                if (datas) {
+                    $('#datas').html('');
+                    for (var i = 0; i < datas.length; i++) {
+                        var tr = '<tr><td style="min-width: 0px;width: 50px;font-size: 10px;">' + (i + 1) + '</td>';
+                        var data = datas[i];
+                        tr += '<td>' + data.id + '</td>';
+                        tr += '<td style="font-size: 10px">' + data.date.substring(0, 4) + '-' + data.date.substring(4, 6) + '-' + data.date.substring(6, 8) + ' ' + data.date.substring(8, 10) + ':' + data.date.substring(10, 12) + '</td>';
+                        tr += '<td onclick="countData(3)">' + data.column1 + '</td>';
+                        tr += '<td onclick="countData(4)">' + data.column2 + '</td>';
+                        tr += '<td onclick="countData(5)">' + data.column3 + '</td>';
+                        tr += '<td onclick="countData(6)">' + data.column4 + '</td>';
+                        tr += '<td onclick="countData(7)">' + data.column5 + '</td>';
+                        tr += '<td onclick="countData(8)">' + data.column6 + '</td>';
+                        tr += '<td onclick="countData(9)">' + data.column7 + '</td>';
+                        tr += '<td onclick="countData(10)">' + data.column8 + '</td>';
+                        tr += '<td onclick="countData(11)">' + data.column9 + '</td>';
+                        tr += '<td onclick="countData(12)">' + data.column10 + '</td>';
+                        tr += '</tr>';
+                        $('#datas').append(tr);
+                    }
+                }
+            });
+        }
+    }
+
+    function searchData() {
+        var date = $('#date').val();
+        if (date.indexOf('-') > 0) {
+            date = date.replace(new RegExp('-', 'gi'), '');
+        }
+        var d1 = date + "" + $('#sj').val();
+        var d2 = date + "" + $('#sj2').val();
+        queryData(d1, d2);
+    }
+
+    function countData(index) {
+        var tr = $('#datas tr');
+        var a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0, a7 = 0, a8 = 0, a9 = 0, a10 = 0;
+        for (var i = 0; i < tr.length; i++) {
+            var td = $(tr[i]).children('td')[index];
+            var text = $(td).text();
+            if (text == 1) {
+                a1++;
+            }
+            if (text == 2) {
+                a2++;
+            }
+            if (text == 3) {
+                a3++;
+            }
+            if (text == 4) {
+                a4++;
+            }
+            if (text == 5) {
+                a5++;
+            }
+            if (text == 6) {
+                a6++;
+            }
+            if (text == 7) {
+                a7++;
+            }
+            if (text == 8) {
+                a8++;
+            }
+            if (text == 9) {
+                a9++;
+            }
+            if (text == 10) {
+                a10++;
+            }
+        }
+        var tr = '<tr><td colspan="5" style="font-size: 20px;">第<span style="font-size: 22px;color: #1eff2a;">' + (index - 2) + '</span>列，共<span style="color: #03a9f4;">' + tr.length + '</span>行</td></tr>';
+        tr += '<tr><td>1号<span style="color: red;">' + a1 + '</span>次</td>';
+        tr += '<td>2号<span style="color: red;">' + a2 + '</span>次</td>';
+        tr += '<td>3号<span style="color: red;">' + a3 + '</span>次</td>';
+        tr += '<td>4号<span style="color: red;">' + a4 + '</span>次</td>';
+        tr += '<td>5号<span style="color: red;">' + a5 + '</span>次</td></tr><tr>';
+        tr += '<td>6号<span style="color: red;">' + a6 + '</span>次</td>';
+        tr += '<td>7号<span style="color: red;">' + a7 + '</span>次</td>';
+        tr += '<td>8号<span style="color: red;">' + a8 + '</span>次</td>';
+        tr += '<td>9号<span style="color: red;">' + a9 + '</span>次</td>';
+        tr += '<td>10号<span style="color: red;">' + a10 + '</span>次</td>';
+        tr += '</tr>';
+        $('#count-table,#tx').html('');
+        $('#count-table').html(tr);
+        $('#counttc,#count-tc').show();
+    }
+</script>
+</html>

@@ -1,0 +1,12 @@
+{
+	"modules": [
+		{
+			"name": "db",
+			"class": "com.uzmap.pkg.uzmodules.uzdb.UzDatebaseSQL"
+		},
+		{
+			"name": "dataInfo",
+			"class": "com.operation.DataInfo"
+		}
+	]
+}

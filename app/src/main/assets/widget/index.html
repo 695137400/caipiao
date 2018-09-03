@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="css/api.css"/>
+    <style>
+        header {
+            background-color: #f2f2f2;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .header {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+        }
+
+        .header a {
+            display: block;
+        }
+
+        .title {
+            line-height: 40px;
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            flex: 1;
+            text-align: center;
+        }
+
+    </style>
+    <script src="script/jquery.js"></script>
+    <link rel="stylesheet" href="css/aui.css">
+</head>
+<body>
+<header>
+    <div class="header">
+        <a class="aui-col-xs-5 aui-btn" style="margin-left: 20px" onclick="home()">预览</a>
+        <div class="title"></div>
+        <a class="aui-col-xs-5 aui-btn" style="margin-right: 20px" onclick="data_info()" id="count">统计</a>
+    </div>
+</header>
+
+<script type="text/javascript" src="script/api.js"></script>
+<script>
+    function sliding() {
+        api.openSlidPane({type: 'left'});
+    }
+
+    function home() {
+        menus.url = 'https://kfc2000.com/mobile3/login';
+        menus.close()
+    }
+
+    function data_info() {
+        menus.url = 'html/dataInfo.html';
+        menus.star(1)
+    }
+
+    var menus = {
+        url: 'https://kfc2000.com/mobile3/login',
+        init: function () {
+            api.openFrameGroup({
+                name: 'menus',
+                scrollEnabled: false,
+                rect: {
+                    x: 'auto', //左上角左右距离
+                    y: '65',//左上角上下距离
+                    w: api.winWidth,//宽度，决定右边到哪
+                    h: api.winHeight - 66//高度，决定底部到哪
+                },
+                frames: [
+                    {
+                        name: 'home',//0
+                        url: menus.url,
+                        scrollToTop: true,
+                        scaleEnabled: true
+                    },
+                    {
+                        name: 'count',//0
+                        url: menus.url,
+                        scrollToTop: true,
+                        scaleEnabled: true,
+                        pageParam: {
+                            efo: window.efo || 0
+                        }
+                    }
+                ]
+            });
+            api.setFrameGroupIndex({
+                name: 'menus',
+                index: 0
+            });
+        },
+        close: function () {
+            api.closeFrameGroup({
+                name: 'menus'
+            });
+            this.init();
+        },
+        star: function (e) {
+            window.efo = e;
+            this.close();
+            api.setFrameGroupIndex({
+                name: 'menus',
+                index: 1
+            });
+        }
+    };
+    apiready = function () {
+        $api.fixStatusBar($api.dom('.header'));
+        api.addEventListener({
+            name: 'keyback'
+        }, function (ret, err) {
+            api.closeWidget();
+        });
+        menus.init();
+
+    };
+
+</script>
+</body>
+</html>
